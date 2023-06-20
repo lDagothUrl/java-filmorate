@@ -1,31 +1,31 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
 import javax.validation.ValidationException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @RestController
-@Validated
 public class FilmController {
     private static final Map<Long, Film> films = new HashMap<>();
 
     private long generatorId = 0;
 
-    public long generateId() {
+    private long generateId() {
         return ++generatorId;
     }
 
     @GetMapping("/films")
-    public Object[] getFilms() {
+    public List<Film> getFilms() {
         log.debug("getFilms");
-        return films.values().toArray();
+        return new ArrayList<>(films.values());
     }
 
     @PostMapping("/films")
