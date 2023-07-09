@@ -12,10 +12,6 @@ public class RealiseDateValidator implements ConstraintValidator<RealiseDateCons
         if (value == null) {
             return true;
         }
-        if (value.isAfter(STARTING_DATE)) {
-            return true;
-        }
-        System.err.println(STARTING_DATE);
-        return false;
+        return (value.isAfter(STARTING_DATE));
     }
 }
