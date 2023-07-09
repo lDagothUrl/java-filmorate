@@ -16,28 +16,28 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handlerThrowable(final Throwable e) {
-        log.warn("Error", e);
+        log.error("Error", e);
         return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handlerEqualsUsersIdException(final EqualsUsersIdException e) {
-        log.info("Error", e);
+        log.error("Error", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handlerMethodArgumentNotValidationException(final MethodArgumentNotValidException e) {
-        log.info("Validation {}", e.getMessage());
+        log.error("Validation {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handlerNotFoundException(final NotFoundException e) {
-        log.info("Not found exception {}", e);
+        log.error("Not found exception {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 }

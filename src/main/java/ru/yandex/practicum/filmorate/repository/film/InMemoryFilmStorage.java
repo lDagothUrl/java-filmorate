@@ -34,22 +34,12 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilm(Integer count) {
-        List<Film> popularFilm = new ArrayList<>();
-        final Map<Long, Integer> sortSize = new LinkedHashMap<>();
-        for (Long filmId : filmsLike.keySet()) {
-            sortSize.put(filmId, filmsLike.get(filmId).size());
-        }
-        int flag = count != null ? count : 10;
-        Map<Long, Integer> sorted =
-                sortSize.entrySet().stream()
-                        .sorted(Map.Entry.comparingByValue((o1, o2) -> {
-                            return o2 - o1;
-                        })).limit(flag).collect(Collectors.toMap(
-                                Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-        for (Long filmId : sorted.keySet()) {
-            popularFilm.add(films.get(filmId));
-        }
-        return popularFilm;
+        return filmsLike.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue((o1, o2) -> o2.size() - o1.size()))
+                .limit(count)
+                .map(Map.Entry::getKey)
+                .map(films::get)
+                .collect(Collectors.toList());
     }
 
     public Film postFilms(Film film) {

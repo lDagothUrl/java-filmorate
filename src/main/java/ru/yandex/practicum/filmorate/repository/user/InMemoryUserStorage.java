@@ -10,7 +10,6 @@ import java.util.*;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
-
     private static final Map<Long, User> users = new HashMap<>();
     private static final Map<Long, Set<Long>> friends = new HashMap<>();
 
@@ -33,18 +32,15 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public List<User> mutualFriends(Long userId, Long friendId) {
         equalsUsersId(userId, friendId);
-        Set<Long> userFriendsId = getSetUser(userId);
-        Set<Long> friendFriendsId = getSetUser(friendId);
+        Set<Long> userFriendsId = getSetLongUserId(userId);
+        Set<Long> friendFriendsId = getSetLongUserId(friendId);
         if (userFriendsId == null || friendFriendsId == null) {
             return new ArrayList<>();
         }
         List<User> mutualF = new ArrayList<>();
         for (Long uFId : userFriendsId) {
-            for (Long fFId : friendFriendsId) {
-                if (uFId == fFId) {
-                    mutualF.add(users.get(uFId));
-                    break;
-                }
+            if (friendFriendsId.contains(uFId)) {
+                mutualF.add(users.get(uFId));
             }
         }
         return mutualF;
@@ -54,7 +50,7 @@ public class InMemoryUserStorage implements UserStorage {
     public List<User> getFriendsUser(Long userId) {
         checkUser(userId);
         List<User> userFriends = new ArrayList<>();
-        for (Long id : getSetUser(userId)) {
+        for (Long id : getSetLongUserId(userId)) {
             userFriends.add(users.get(id));
         }
         return userFriends;
@@ -108,20 +104,20 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public void deleteFriend(Long userId, Long friendId) {
         equalsUsersId(userId, friendId);
-        Set<Long> userFriendIds = getSetUser(userId);
+        Set<Long> userFriendIds = getSetLongUserId(userId);
         userFriendIds.remove(friendId);
 
-        Set<Long> friendUserIds = getSetUser(friendId);
+        Set<Long> friendUserIds = getSetLongUserId(friendId);
         friendUserIds.remove(userId);
     }
 
     private void equalsUsersId(Long userId, Long friendId) {
-        if (userId == friendId) {
+        if (userId.equals(friendId)) {
             throw new EqualsUsersIdException("The same user is specified");
         }
     }
 
-    private Set<Long> getSetUser(Long userId) {
+    private Set<Long> getSetLongUserId(Long userId) {
         Set<Long> userMap = friends.get(userId);
         if (userId == null) {
             throw new NotFoundException("userId: " + userId);
