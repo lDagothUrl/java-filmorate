@@ -91,4 +91,11 @@ public class BaseUserService implements UserService {
         userStorage.deleteFriend(userId, friendId);
         log.info("deleteFriend-end");
     }
+
+    @Override
+    public void blockedUser(Long userId, Long friendId) {
+        log.info("blockedUser-start UserId {}, FriendId {}", userId, friendId);
+        userStorage.blockedUser(userId, friendId);
+        log.info("blockedUser-end");
+    }
 }

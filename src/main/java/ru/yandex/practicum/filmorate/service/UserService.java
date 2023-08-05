@@ -24,4 +24,6 @@ public interface UserService {
     void addFriend(Long userId, Long friendId);
 
     void deleteFriend(Long userId, Long friendId);
+
+    void blockedUser(Long userId, Long friendId);
 }

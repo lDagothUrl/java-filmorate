@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.repository.user;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EqualsUsersIdException;
+import ru.yandex.practicum.filmorate.exception.ExceptionAlreadyInFriends;
+import ru.yandex.practicum.filmorate.exception.ExceptionBlockedUserFriend;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -11,8 +13,8 @@ import java.util.*;
 @Component
 public class InMemoryUserStorage implements UserStorage {
     private static final Map<Long, User> users = new HashMap<>();
-    private static final Map<Long, Set<Long>> friends = new HashMap<>();
-
+    private static final Map<Long, HashSet<Long>> friends = new HashMap<>();
+    private static final Map<Long, Map<Long, StatusFriend>> requestFriends = new HashMap<>();
     private long generatorId = 0;
 
     private long generateId() {
@@ -88,12 +90,20 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void addFriend(Long userId, Long friendId) {
-        equalsUsersId(userId, friendId);
-        checkUser(userId);
-        checkUser(friendId);
-        if (users.get(userId) == null) {
-            throw new NotFoundException("user userId: " + userId);
+        checkList(userId, friendId);
+        StatusFriend status = requestFriends.get(friendId) == null ? null : requestFriends.get(friendId).get(userId);
+        if (status == StatusFriend.WAITING) {
+            confirmationFriend(userId, friendId);
+            requestFriends.get(friendId).remove(userId);
+        } else if (status == StatusFriend.BLOCKED) {
+            throw new ExceptionBlockedUserFriend(status + " friendId: " + friendId + " userId: " + userId);
+        } else {
+            Map<Long, StatusFriend> statusFriendMap = requestFriends.computeIfAbsent(userId, id -> new HashMap<>());
+            statusFriendMap.put(friendId, StatusFriend.WAITING);
         }
+    }
+
+    public void confirmationFriend(Long userId, Long friendId) {
         Set<Long> uFriendIds = friends.computeIfAbsent(userId, id -> new HashSet<>());
         uFriendIds.add(friendId);
 
@@ -109,6 +119,13 @@ public class InMemoryUserStorage implements UserStorage {
 
         Set<Long> friendUserIds = getSetLongUserId(friendId);
         friendUserIds.remove(userId);
+    }
+
+    @Override
+    public void blockedUser(Long userId, Long friendId) {
+        checkList(userId, friendId);
+        Map<Long, StatusFriend> statusFriendMap = requestFriends.computeIfAbsent(userId, id -> new HashMap<>());
+        statusFriendMap.put(friendId, StatusFriend.BLOCKED);
     }
 
     private void equalsUsersId(Long userId, Long friendId) {
@@ -130,5 +147,18 @@ public class InMemoryUserStorage implements UserStorage {
         if (users.get(id) == null) {
             throw new NotFoundException("user userId: " + id);
         }
+    }
+
+    private void checkUserFriend(Long userId, Long friendId) {
+        if (friends.get(userId).contains(friendId)) {
+            throw new ExceptionAlreadyInFriends("Already in friends userId: " + userId + " friendId: " + friendId);
+        }
+    }
+
+    private void checkList(Long userId, Long friendId) {
+        checkUser(userId);
+        checkUser(friendId);
+        equalsUsersId(userId, friendId);
+        checkUserFriend(userId, friendId);
     }
 }
