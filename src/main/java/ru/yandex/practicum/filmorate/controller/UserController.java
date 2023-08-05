@@ -67,4 +67,10 @@ public class UserController {
     public void deleteFriend(@PathVariable @NotNull Long userId, @PathVariable @NotNull Long friendId) {
         userService.deleteFriend(userId, friendId);
     }
+
+    @PutMapping("/users/{userId}/blocked/{friendId}")
+    public void blockedUser(@PathVariable @NotNull Long userId, @PathVariable @NotNull Long friendId) {
+        userService.blockedUser(userId, friendId);
+    }
+
 }
