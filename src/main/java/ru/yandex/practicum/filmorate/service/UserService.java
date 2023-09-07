@@ -1,29 +1,58 @@
 package ru.yandex.practicum.filmorate.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.user.FriendListDao;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
 
-public interface UserService {
-    List<User> getUsers();
+@Service
+public class UserService {
+    private final UserStorage userStorage;
+    private final FriendListDao friendListDao;
 
-    User getUser(Long id);
+    @Autowired
+    public UserService(UserStorage userStorage, FriendListDao friendListDao) {
+        this.userStorage = userStorage;
+        this.friendListDao = friendListDao;
+    }
 
-    List<User> getFriendsUser(Long userId);
+    public List<User> getCommonFriends(int userId, int friendId) {
+        return friendListDao.getCommonFriends(userId, friendId);
+    }
 
-    List<User> mutualFriends(Long userId, Long friendId);
+    public List<User> getFriends(int userId) {
+        return friendListDao.getAll(userId);
+    }
 
-    User postUsers(User user);
+    public List<User> findAll() {
+        return userStorage.findAll();
+    }
 
-    User putUsers(User user);
+    public User findUser(int id) {
+        return userStorage.findUser(id);
+    }
 
-    void delUsers();
+    public void createUser(User user) {
+        userStorage.createUser(user);
 
-    User delUser(Long id);
+    }
 
-    void addFriend(Long userId, Long friendId);
+    public void addFriend(int userId, int friendId) {
+        friendListDao.addFriend(userId, friendId);
+    }
 
-    void deleteFriend(Long userId, Long friendId);
+    public void updateUser(User userUpdate) {
+        userStorage.updateUser(userUpdate);
+    }
 
-    void blockedUser(Long userId, Long friendId);
+    public void deleteUser(int id) {
+        userStorage.deleteUser(id);
+    }
+
+    public void delFriend(int userId, int friendId) {
+        friendListDao.deleteFriend(userId, friendId);
+    }
 }
