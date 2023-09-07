@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-@AllArgsConstructor
-@Getter
+import java.util.List;
+
+@Slf4j
+@Data
 public class ErrorResponse {
-    private final String message;
+    private String message;
+    private List<String> errors;
 }
