@@ -93,8 +93,9 @@ public class FilmDb implements FilmStorage {
         try {
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(connection -> {
-                PreparedStatement stmt = connection.prepareStatement("INSERT INTO films (name, description, release_date, duration, mpa_id)"
-                        + "values (?, ?, ?, ?, ?)", new String[]{"film_id"});
+                PreparedStatement stmt = connection.prepareStatement(
+                        "INSERT INTO films (name, description, release_date, duration, mpa_id)"
+                                + "values (?, ?, ?, ?, ?)", new String[]{"film_id"});
                 stmt.setString(1, film.getName());
                 stmt.setString(2, film.getDescription());
                 stmt.setDate(3, Date.valueOf(film.getReleaseDate()));
@@ -121,7 +122,8 @@ public class FilmDb implements FilmStorage {
             throw new NotFoundException("Фильм с идентификатором " + film.getId() + " не найден!");
         }
         jdbcTemplate.update("UPDATE films SET name = ?, description = ?, release_date = ?, " +
-                        "duration = ?, mpa_id = ? WHERE film_id = ?", film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(),
+                        "duration = ?, mpa_id = ? WHERE film_id = ?", film.getName(), film.getDescription(),
+                film.getReleaseDate(), film.getDuration(),
                 film.getMpa().getId(), film.getId());
         if (film.getGenres() == null || film.getGenres().isEmpty()) {
             deleteGenresFromFilm(film);
@@ -149,8 +151,7 @@ public class FilmDb implements FilmStorage {
                 "JOIN mpa_ratings as m ON f.mpa_id = m.rating_id " +
                 "WHERE film_id = ?", this::makeFilm, id);
         film.setGenres(getGenresOfFilm(id));
-        film.setLikes(new HashSet<>(jdbcTemplate.
-                queryForList("SELECT user_id FROM films_likes WHERE film_id = ?", Integer.class, id)));
+        film.setLikes(new HashSet<>(jdbcTemplate.queryForList("SELECT user_id FROM films_likes WHERE film_id = ?", Integer.class, id)));
         return film;
     }
 
@@ -178,18 +179,19 @@ public class FilmDb implements FilmStorage {
     }
 
     private void addGenresToFilm(Film film) {
-        jdbcTemplate.batchUpdate("INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)", new BatchPreparedStatementSetter() {
-            @Override
-            public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
-                preparedStatement.setInt(1, film.getId());
-                preparedStatement.setInt(2, new ArrayList<>(film.getGenres()).get(i).getId());
-            }
+        jdbcTemplate.batchUpdate("INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                        preparedStatement.setInt(1, film.getId());
+                        preparedStatement.setInt(2, new ArrayList<>(film.getGenres()).get(i).getId());
+                    }
 
-            @Override
-            public int getBatchSize() {
-                return film.getGenres().size();
-            }
-        });
+                    @Override
+                    public int getBatchSize() {
+                        return film.getGenres().size();
+                    }
+                });
     }
 
     private void updateGenresOfFilm(Film film) {
@@ -225,6 +227,7 @@ public class FilmDb implements FilmStorage {
     }
 
     private boolean checkFilmId(int id) {
-        return Boolean.TRUE.equals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM films WHERE film_id = ?)", Boolean.class, id));
+        return Boolean.TRUE.equals(jdbcTemplate.
+                queryForObject("SELECT EXISTS(SELECT 1 FROM films WHERE film_id = ?)", Boolean.class, id));
     }
 }

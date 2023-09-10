@@ -26,7 +26,8 @@ public class GenreDaoImplement implements GenreDao {
     public Genre getGenreById(Integer genreId) {
         Genre genre;
         try {
-            genre = jdbcTemplate.queryForObject("SELECT * FROM genres WHERE genre_id = ?", this::makeGenre, genreId);
+            genre = jdbcTemplate.
+                    queryForObject("SELECT * FROM genres WHERE genre_id = ?", this::makeGenre, genreId);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Жанр с идентификатором " + genreId +
                     " не найден!");
