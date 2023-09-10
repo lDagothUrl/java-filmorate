@@ -1,11 +1,5 @@
 package ru.yandex.practicum.filmorate.model;
 
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import lombok.Data;
 import lombok.NonNull;
 import lombok.ToString;
@@ -14,6 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Data

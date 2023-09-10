@@ -133,7 +133,7 @@ public class FilmDb implements FilmStorage {
             deleteGenresFromFilm(film);
         } else {
             List<Genre> list = new ArrayList<>(film.getGenres());
-            Collections.sort(list, (Genre o1,Genre  o2) -> o1.getId()-o2.getId());
+            Collections.sort(list, (Genre o1, Genre o2) -> o1.getId() - o2.getId());
             film.setGenres(new LinkedHashSet<>(list));
             updateGenresOfFilm(film);
         }
