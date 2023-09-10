@@ -11,6 +11,7 @@ import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -22,6 +23,7 @@ public class User {
 
     private int id;
     @NotEmpty(message = "empty")
+    @Email
     private String email;
     @NotEmpty(message = "empty")
     @NotNull(message = "null")

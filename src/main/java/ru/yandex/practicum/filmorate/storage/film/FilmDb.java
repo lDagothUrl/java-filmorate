@@ -132,7 +132,9 @@ public class FilmDb implements FilmStorage {
         if (film.getGenres() == null || film.getGenres().isEmpty()) {
             deleteGenresFromFilm(film);
         } else {
-            film.setGenres(new LinkedHashSet<>(film.getGenres()));
+            List<Genre> list = new ArrayList<>(film.getGenres());
+            Collections.sort(list, (Genre o1,Genre  o2) -> o1.getId()-o2.getId());
+            film.setGenres(new LinkedHashSet<>(list));
             updateGenresOfFilm(film);
         }
         return film;

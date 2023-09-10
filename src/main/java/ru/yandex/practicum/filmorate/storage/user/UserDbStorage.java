@@ -102,9 +102,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     private boolean isEmailUnique(String email) {
-        String sqlQuery = "SELECT COUNT(*) FROM users WHERE user_email = ?";
-        int count = jdbcTemplate.queryForObject(sqlQuery, Integer.class, email);
-        return count == 0;
+        return jdbcTemplate.queryForObject("SELECT EXISTS (SELECT * FROM users WHERE user_email = ?);", Integer.class, email) == 0;
     }
 
     private boolean isLoginUnique(String login) {
