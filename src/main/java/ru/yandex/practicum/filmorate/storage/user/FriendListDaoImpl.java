@@ -1,32 +1,22 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Objects;
 
 @Component
+@RequiredArgsConstructor
 public class FriendListDaoImpl implements FriendListDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public FriendListDaoImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
     @Override
     public void addFriend(Integer userId, Integer friendId) {
-        if (Objects.equals(userId, friendId)) {
-            throw new ValidationException("Id пользователей не должны совпадать!");
-        } else if (!checkUserId(userId) || !checkUserId(friendId)) {
-            throw new NotFoundException("Пользователь не найден");
-        }
         String sqlQuery = "INSERT INTO friend_list(user_id, friend_id, confirmed)" +
                 "VALUES (?, ?, ?)";
         jdbcTemplate.update(sqlQuery, userId, friendId, true);
@@ -34,9 +24,6 @@ public class FriendListDaoImpl implements FriendListDao {
 
     @Override
     public void deleteFriend(Integer userId, Integer friendId) {
-        if (!checkUserId(userId) || !checkUserId(friendId)) {
-            throw new ValidationException("Введен некорректный id");
-        }
         String sqlQuery = "DELETE FROM friend_list WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(sqlQuery, userId, friendId);
     }
@@ -70,10 +57,5 @@ public class FriendListDaoImpl implements FriendListDao {
                 resultSet.getDate("user_birthday").toLocalDate(),
                 resultSet.getInt("user_id")
         );
-    }
-
-    private boolean checkUserId(int id) {
-        String sql = "SELECT EXISTS(SELECT 1 FROM users WHERE user_id = ?)";
-        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id));
     }
 }

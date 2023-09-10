@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -12,12 +13,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class GenreDaoImplement implements GenreDao {
     private final JdbcTemplate jdbcTemplate;
-
-    public GenreDaoImplement(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public List<Genre> getGenres() {

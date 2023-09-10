@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -11,16 +11,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
 
     private final LikeDao likesDao;
-
-    @Autowired
-    public FilmService(FilmStorage filmStorage, LikeDao likesDao) {
-        this.filmStorage = filmStorage;
-        this.likesDao = likesDao;
-    }
 
     public int getLikes(int filmId) {
         return filmStorage.findFilm(filmId).getLikes().size();

@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,21 +15,18 @@ import java.util.Set;
 
 @Slf4j
 @Data
-@NonNull
 @ToString
 public class User {
 
     private int id;
-    @NotEmpty(message = "empty")
     @Email
     private String email;
     @NotEmpty(message = "empty")
-    @NotNull(message = "null")
     private String login;
     private String name;
     @NotNull(message = "null")
     private LocalDate birthday;
-    public Map<Integer, FriendshipStatus> friends;
+    private Map<Integer, FriendshipStatus> friends;
     private Set<Integer> pendingFriends;
 
 

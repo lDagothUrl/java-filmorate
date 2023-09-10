@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.validation;
+package ru.yandex.practicum.filmorate.validation.film;
 
 import ru.yandex.practicum.filmorate.model.Film;
 

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -21,16 +22,11 @@ import static java.util.function.UnaryOperator.identity;
 
 @Component
 @Primary
+@RequiredArgsConstructor
 public class FilmDb implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
     private final LikeDao likesDao;
-
-
-    public FilmDb(JdbcTemplate jdbcTemplate, LikeDao likesDao) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.likesDao = likesDao;
-    }
 
     @Override
     public void deleteFilm(int id) {
@@ -179,25 +175,25 @@ public class FilmDb implements FilmStorage {
         return films;
     }
 
-    public void deleteGenresFromFilm(Film film) {
+    private void deleteGenresFromFilm(Film film) {
         String sqlQuery = "DELETE FROM films_genres WHERE film_id = ?";
         jdbcTemplate.update(sqlQuery, film.getId());
     }
 
-    public void addGenresToFilm(Film film) {
+    private void addGenresToFilm(Film film) {
         for (Genre genre : film.getGenres()) {
             String setNewGenres = "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
             jdbcTemplate.update(setNewGenres, film.getId(), genre.getId());
         }
     }
 
-    public void updateGenresOfFilm(Film film) {
+    private void updateGenresOfFilm(Film film) {
         String sqlQuery = "DELETE FROM films_genres WHERE film_id = ?";
         jdbcTemplate.update(sqlQuery, film.getId());
         addGenresToFilm(film);
     }
 
-    public Set<Genre> getGenresOfFilm(int filmId) {
+    private Set<Genre> getGenresOfFilm(int filmId) {
         String sqlQuery = "SELECT * FROM genres " +
                 "INNER JOIN films_genres AS fg ON genres.genre_id = fg.genre_id " +
                 "WHERE film_id = ?";
