@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -26,7 +27,6 @@ import static java.util.function.UnaryOperator.identity;
 public class FilmDb implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final LikeDao likesDao;
 
     @Override
     public void deleteFilm(int id) {
@@ -91,11 +91,10 @@ public class FilmDb implements FilmStorage {
     public Film createFilm(Film film) {
 
         try {
-            String sqlQuery = "INSERT INTO films (name, description, release_date, duration, mpa_id)"
-                    + "values (?, ?, ?, ?, ?)";
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(connection -> {
-                PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"film_id"});
+                PreparedStatement stmt = connection.prepareStatement("INSERT INTO films (name, description, release_date, duration, mpa_id)"
+                        + "values (?, ?, ?, ?, ?)", new String[]{"film_id"});
                 stmt.setString(1, film.getName());
                 stmt.setString(2, film.getDescription());
                 stmt.setDate(3, Date.valueOf(film.getReleaseDate()));
@@ -121,15 +120,14 @@ public class FilmDb implements FilmStorage {
         if (!checkFilmId(film.getId())) {
             throw new NotFoundException("Фильм с идентификатором " + film.getId() + " не найден!");
         }
-        String sqlQuery = "UPDATE films SET name = ?, description = ?, release_date = ?, " +
-                "duration = ?, mpa_id = ? WHERE film_id = ?";
-        jdbcTemplate.update(sqlQuery, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(),
+        jdbcTemplate.update("UPDATE films SET name = ?, description = ?, release_date = ?, " +
+                        "duration = ?, mpa_id = ? WHERE film_id = ?", film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(),
                 film.getMpa().getId(), film.getId());
         if (film.getGenres() == null || film.getGenres().isEmpty()) {
             deleteGenresFromFilm(film);
         } else {
             List<Genre> list = new ArrayList<>(film.getGenres());
-            Collections.sort(list, (Genre o1, Genre o2) -> o1.getId() - o2.getId());
+            list.sort(Comparator.comparingInt(Genre::getId));
             film.setGenres(new LinkedHashSet<>(list));
             updateGenresOfFilm(film);
         }
@@ -142,17 +140,17 @@ public class FilmDb implements FilmStorage {
         if (!checkFilmId(id)) {
             throw new NotFoundException("Фильм с идентификатором " + id + " не найден!");
         }
-        String sqlQuery = "SELECT f.*, " +
+
+        Film film = jdbcTemplate.queryForObject("SELECT f.*, " +
                 "m.rating as mpa_name, " +
                 "m.description as mpa_description, " +
                 "m.rating_id as mpa_id, " +
                 "FROM films as f " +
                 "JOIN mpa_ratings as m ON f.mpa_id = m.rating_id " +
-                "WHERE film_id = ?";
-
-        Film film = jdbcTemplate.queryForObject(sqlQuery, this::makeFilm, id);
+                "WHERE film_id = ?", this::makeFilm, id);
         film.setGenres(getGenresOfFilm(id));
-        film.setLikes(likesDao.getFilmLikes(id));
+        film.setLikes(new HashSet<>(jdbcTemplate.
+                queryForList("SELECT user_id FROM films_likes WHERE film_id = ?", Integer.class, id)));
         return film;
     }
 
@@ -176,28 +174,33 @@ public class FilmDb implements FilmStorage {
     }
 
     private void deleteGenresFromFilm(Film film) {
-        String sqlQuery = "DELETE FROM films_genres WHERE film_id = ?";
-        jdbcTemplate.update(sqlQuery, film.getId());
+        jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?", film.getId());
     }
 
     private void addGenresToFilm(Film film) {
-        for (Genre genre : film.getGenres()) {
-            String setNewGenres = "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
-            jdbcTemplate.update(setNewGenres, film.getId(), genre.getId());
-        }
+        jdbcTemplate.batchUpdate("INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)", new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                preparedStatement.setInt(1, film.getId());
+                preparedStatement.setInt(2, new ArrayList<>(film.getGenres()).get(i).getId());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return film.getGenres().size();
+            }
+        });
     }
 
     private void updateGenresOfFilm(Film film) {
-        String sqlQuery = "DELETE FROM films_genres WHERE film_id = ?";
-        jdbcTemplate.update(sqlQuery, film.getId());
+        jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?", film.getId());
         addGenresToFilm(film);
     }
 
     private Set<Genre> getGenresOfFilm(int filmId) {
-        String sqlQuery = "SELECT * FROM genres " +
+        return new HashSet<>(jdbcTemplate.query("SELECT * FROM genres " +
                 "INNER JOIN films_genres AS fg ON genres.genre_id = fg.genre_id " +
-                "WHERE film_id = ?";
-        return new HashSet<>(jdbcTemplate.query(sqlQuery, this::makeGenre, filmId));
+                "WHERE film_id = ?", this::makeGenre, filmId));
     }
 
     private Film makeFilm(ResultSet resultSet, int i) throws SQLException {
@@ -222,7 +225,6 @@ public class FilmDb implements FilmStorage {
     }
 
     private boolean checkFilmId(int id) {
-        String sql = "SELECT EXISTS(SELECT 1 FROM films WHERE film_id = ?)";
-        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id));
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM films WHERE film_id = ?)", Boolean.class, id));
     }
 }

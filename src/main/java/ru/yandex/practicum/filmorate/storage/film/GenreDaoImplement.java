@@ -19,16 +19,14 @@ public class GenreDaoImplement implements GenreDao {
 
     @Override
     public List<Genre> getGenres() {
-        String sqlQuery = "SELECT * FROM genres";
-        return jdbcTemplate.query(sqlQuery, this::makeGenre);
+        return jdbcTemplate.query("SELECT * FROM genres", this::makeGenre);
     }
 
     @Override
     public Genre getGenreById(Integer genreId) {
-        String sqlQuery = "SELECT * FROM genres WHERE genre_id = ?";
         Genre genre;
         try {
-            genre = jdbcTemplate.queryForObject(sqlQuery, this::makeGenre, genreId);
+            genre = jdbcTemplate.queryForObject("SELECT * FROM genres WHERE genre_id = ?", this::makeGenre, genreId);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Жанр с идентификатором " + genreId +
                     " не найден!");
