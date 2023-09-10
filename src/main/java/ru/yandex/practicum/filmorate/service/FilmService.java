@@ -1,25 +1,74 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.LikeDao;
 
+import java.time.LocalDate;
 import java.util.List;
 
-public interface FilmService {
-    List<Film> getFilms();
+@Service
+@RequiredArgsConstructor
+public class FilmService {
+    private final FilmStorage filmStorage;
 
-    Film getFilm(Long id);
+    private final LikeDao likesDao;
 
-    List<Film> getPopularFilm(Integer count);
+    public int getLikes(int filmId) {
+        return filmStorage.findFilm(filmId).getLikes().size();
+    }
 
-    Film postFilms(Film film);
+    public List<Film> getPopularFilms(Integer count) {
+        return filmStorage.findPopularFilms(count);
+    }
 
-    void addFilmsLike(Long filmId, Long userId);
+    public Film findFilm(int id) {
+        return filmStorage.findFilm(id);
+    }
 
-    Film putFilms(Film film);
+    public List<Film> findAll() {
+        return filmStorage.findAll();
+    }
 
-    void delFilms();
+    public void createFilm(Film film) {
+        validation(film);
+        filmStorage.createFilm(film);
+    }
 
-    Film delFilm(Long id);
+    public void addLike(int filmId, Integer userId) {
+        likesDao.addLikeToFilm(filmId, userId);
+    }
 
-    void delFilmsLike(Long filmId, Long userId);
+    public Film updateFilm(Film filmToUpdate) {
+        validation(filmToUpdate);
+        return filmStorage.updateFilm(filmToUpdate);
+    }
+
+    public void deleteFilm(int filmToDelite) {
+        filmStorage.deleteFilm(filmToDelite);
+    }
+
+    public void deleteLike(int filmId, Integer userId) {
+        likesDao.deleteLikeFromFilm(filmId, userId);
+    }
+
+    private void validation(Film film) {
+        final LocalDate latestReleaseDate = LocalDate.of(1895, 12, 28);
+
+        if (film.getReleaseDate().isBefore(latestReleaseDate)) {
+            throw new ValidationException("Release date before 1895.12.28");
+        }
+        if (film.getName().isEmpty() && film.getName().isBlank()) {
+            throw new ValidationException("name not empty");
+        }
+        if (film.getDuration() < 0) {
+            throw new ValidationException("duration negotiv");
+        }
+        if (film.getDescription().length() > 200) {
+            throw new ValidationException("duration length more 200");
+        }
+    }
 }

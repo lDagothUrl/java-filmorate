@@ -1,76 +1,70 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
+@Slf4j
+@RequestMapping("/users")
 @RequiredArgsConstructor
 @Validated
 public class UserController {
-
     private final UserService userService;
 
-    @GetMapping("/users")
-    public List<User> getUsers() {
-        return userService.getUsers();
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> commonFriends(@PathVariable("id") int id, @PathVariable("otherId") int otherId) {
+        log.info("userId {} запрашивает общих друзей у otherId {}", id, otherId);
+        return userService.getCommonFriends(id, otherId);
     }
 
-    @GetMapping("/users/{id}")
-    public User getUser(@PathVariable @NotNull Long id) {
-        return userService.getUser(id);
+    @GetMapping
+    public List<User> findAll() {
+        return userService.findAll();
     }
 
-    @GetMapping("/users/{userId}/friends")
-    public List<User> getFriendsUser(@PathVariable @NotNull Long userId) {
-        return userService.getFriendsUser(userId);
+    @GetMapping("/{id}")
+    public User findUser(@PathVariable int id) {
+        return userService.findUser(id);
     }
 
-    @GetMapping("/users/{userId}/friends/common/{friendId}")
-    public List<User> mutualFriends(@PathVariable @NotNull Long userId,
-                                    @PathVariable @NotNull Long friendId) {
-        return userService.mutualFriends(userId, friendId);
+    @GetMapping("/{id}/friends")
+    public List<User> getAllFriend(@PathVariable int id) {
+        return userService.getFriends(id);
     }
 
-    @PostMapping("/users")
-    public User postUsers(@RequestBody @Valid User user) {
-        return userService.postUsers(user);
+    @PostMapping
+    public User createUser(@RequestBody User user) {
+        userService.createUser(user);
+        return user;
     }
 
-    @PutMapping("/users")
-    public User putUsers(@RequestBody @Valid User user) {
-        return userService.putUsers(user);
+    @PutMapping
+    public User updateUser(@RequestBody User userToUpdate) {
+        userService.updateUser(userToUpdate);
+        return userToUpdate;
     }
 
-    @DeleteMapping("/users")
-    public void delUsers() {
-        userService.delUsers();
-    }
-
-    @DeleteMapping("/users/{id}")
-    public User delUser(@PathVariable @NotNull Long id) {
-        return userService.delUser(id);
-    }
-
-    @PutMapping("/users/{userId}/friends/{friendId}")
-    public void addFriend(@PathVariable @NotNull Long userId, @PathVariable @NotNull Long friendId) {
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable("id") int userId, @PathVariable("friendId") int friendId) {
         userService.addFriend(userId, friendId);
+        log.info("userId {} добавил в друзья friendId {}", userId, friendId);
     }
 
-    @DeleteMapping("/users/{userId}/friends/{friendId}")
-    public void deleteFriend(@PathVariable @NotNull Long userId, @PathVariable @NotNull Long friendId) {
-        userService.deleteFriend(userId, friendId);
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void deleteFriend(@PathVariable("id") int userId, @PathVariable("friendId") int friendId) {
+        userService.delFriend(userId, friendId);
+        log.info("userId {} удалил из друзей friendId {}", userId, friendId);
     }
 
-    @PutMapping("/users/{userId}/blocked/{friendId}")
-    public void blockedUser(@PathVariable @NotNull Long userId, @PathVariable @NotNull Long friendId) {
-        userService.blockedUser(userId, friendId);
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable int id) {
+        userService.deleteUser(id);
+        log.info("userId {} удален", id);
     }
-
 }

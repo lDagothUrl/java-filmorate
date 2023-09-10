@@ -1,26 +1,44 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@Slf4j
+@Data
+@ToString
 public class User {
-    private long id;
+
+    private int id;
     @Email
-    @NotEmpty
     private String email;
-    @NotBlank
+    @NotEmpty(message = "empty")
     private String login;
     private String name;
-    @NotNull
-    @PastOrPresent
+    @NotNull(message = "null")
     private LocalDate birthday;
+    private Map<Integer, FriendshipStatus> friends;
+    private Set<Integer> pendingFriends;
+
+
+    public User(String email, String login, String name, LocalDate birthday, int id) {
+        this.id = id;
+        this.email = email;
+        this.login = login;
+        this.name = name == null || name.trim().isEmpty() ? login : name;
+        this.birthday = birthday;
+        this.friends = new HashMap<>();
+        this.pendingFriends = new HashSet<>();
+    }
+
+
 }
