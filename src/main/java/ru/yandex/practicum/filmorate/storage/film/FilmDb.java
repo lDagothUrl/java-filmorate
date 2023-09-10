@@ -227,7 +227,6 @@ public class FilmDb implements FilmStorage {
     }
 
     private boolean checkFilmId(int id) {
-        return Boolean.TRUE.equals(jdbcTemplate.
-                queryForObject("SELECT EXISTS(SELECT 1 FROM films WHERE film_id = ?)", Boolean.class, id));
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM films WHERE film_id = ?)", Boolean.class, id));
     }
 }
