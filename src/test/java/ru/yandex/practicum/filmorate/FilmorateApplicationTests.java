@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -18,8 +19,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.LikeDao;
-import ru.yandex.practicum.filmorate.storage.user.FriendListDaoImpl;
-import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -33,8 +32,7 @@ import static org.mockito.Mockito.*;
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmorateApplicationTests {
-    private final UserDbStorage userStorage;
-    private final FriendListDaoImpl friendListDaoImpl;
+    private final UserController userController;
     @Mock
     private LikeDao likeDao;
     @Mock
@@ -63,14 +61,14 @@ public class FilmorateApplicationTests {
 
     private User initializeDataUser() {
         User user = new User("test@test.com", "test", "Test User", LocalDate.of(1995, 12, 18), 1);
-        return userStorage.createUser(user);
+        return userController.createUser(user);
     }
 
     @Test
     public void testCreateUser() {
         User user = initializeDataUser();
         assertThat(user.getId()).isNotNull();
-        Assertions.assertThat(userStorage.findUser(user.getId())).isEqualTo(user);
+        Assertions.assertThat(userController.findUser(user.getId())).isEqualTo(user);
     }
 
 
@@ -108,13 +106,13 @@ public class FilmorateApplicationTests {
         User friend2 = new User("friend2@test.com", "friend2", "Friend2", LocalDate.of(2000, 7, 1), 3);
         User friend3 = new User("friend3@test.com", "friend3", "Friend3", LocalDate.of(2000, 7, 1), 4);
 
-        userStorage.createUser(friend1);
-        userStorage.createUser(friend2);
-        userStorage.createUser(friend3);
+        userController.createUser(friend1);
+        userController.createUser(friend2);
+        userController.createUser(friend3);
 
-        friendListDaoImpl.addFriend(friend1.getId(), friend3.getId());
-        friendListDaoImpl.addFriend(friend2.getId(), friend3.getId());
-        Collection<User> commonFriends = friendListDaoImpl.getCommonFriends(friend1.getId(), friend2.getId());
+        userController.addFriend(friend1.getId(), friend3.getId());
+        userController.addFriend(friend2.getId(), friend3.getId());
+        Collection<User> commonFriends = userController.commonFriends(friend1.getId(), friend2.getId());
 
         assertThat(commonFriends)
                 .isNotNull()
@@ -126,11 +124,11 @@ public class FilmorateApplicationTests {
     public void testAddFriend() {
         User friend1 = new User("friend12@test.com", "friend12", "Friend1", LocalDate.of(2000, 1, 1), 5);
         User friend2 = new User("friend23@test.com", "friend23", "Friend2", LocalDate.of(2000, 7, 1), 6);
-        userStorage.createUser(friend1);
-        userStorage.createUser(friend2);
+        userController.createUser(friend1);
+        userController.createUser(friend2);
 
-        friendListDaoImpl.addFriend(friend1.getId(), friend2.getId());
-        Collection<User> friends = friendListDaoImpl.getAll(friend1.getId());
+        userController.addFriend(friend1.getId(), friend2.getId());
+        Collection<User> friends = userController.getAllFriend(friend1.getId());
 
         assertThat(friends)
                 .isNotNull()
@@ -141,7 +139,7 @@ public class FilmorateApplicationTests {
     public void testAddFriendSameIdsThrowsValidationException() {
         int userId = 1;
         int friendId = 1;
-        assertThatThrownBy(() -> friendListDaoImpl.addFriend(userId, friendId))
+        assertThatThrownBy(() -> userController.addFriend(userId, friendId))
                 .isInstanceOf(ValidationException.class)
                 .hasMessage("Id пользователей не должны совпадать!");
     }
@@ -150,7 +148,7 @@ public class FilmorateApplicationTests {
     public void testAddFriendNonExistingIdsThrowsUserNotFoundException() {
         int userId = 1;
         int friendId = 999;
-        assertThatThrownBy(() -> friendListDaoImpl.addFriend(userId, friendId))
+        assertThatThrownBy(() -> userController.addFriend(userId, friendId))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Пользователь не найден");
     }
@@ -159,12 +157,12 @@ public class FilmorateApplicationTests {
     public void testDeleteFriend() {
         User friend1 = new User("friend13@test.com", "friend13", "Friend1", LocalDate.of(2000, 1, 1), 7);
         User friend2 = new User("friend24@test.com", "friend24", "Friend2", LocalDate.of(2000, 7, 1), 8);
-        userStorage.createUser(friend1);
-        userStorage.createUser(friend2);
+        userController.createUser(friend1);
+        userController.createUser(friend2);
 
-        friendListDaoImpl.addFriend(friend1.getId(), friend2.getId());
-        friendListDaoImpl.deleteFriend(friend1.getId(), friend2.getId());
-        Collection<User> friends = friendListDaoImpl.getAll(friend1.getId());
+        userController.addFriend(friend1.getId(), friend2.getId());
+        userController.deleteFriend(friend1.getId(), friend2.getId());
+        Collection<User> friends = userController.getAllFriend(friend1.getId());
 
         assertThat(friends)
                 .isNotNull()
@@ -174,10 +172,10 @@ public class FilmorateApplicationTests {
     @Test
     public void testDeleteFriendNonExistingIdsThrowsValidationException() {
         User friend1 = new User("friend15@test.com", "friend15", "Friend1", LocalDate.of(2000, 1, 1), 9);
-        userStorage.createUser(friend1);
+        userController.createUser(friend1);
 
 
-        assertThatThrownBy(() -> friendListDaoImpl.deleteFriend(friend1.getId(), 8))
+        assertThatThrownBy(() -> userController.deleteFriend(friend1.getId(), 8))
                 .isInstanceOf(ValidationException.class)
                 .hasMessage("Введен некорректный id");
     }
