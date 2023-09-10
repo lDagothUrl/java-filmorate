@@ -15,8 +15,7 @@ public class LikesDaoImplement implements LikeDao {
 
     @Override
     public Set<Integer> getFilmLikes(Integer filmId) {
-        return new HashSet<>(jdbcTemplate.
-                queryForList("SELECT user_id FROM films_likes WHERE film_id = ?", Integer.class, filmId));
+        return new HashSet<>(jdbcTemplate.queryForList("SELECT user_id FROM films_likes WHERE film_id = ?", Integer.class, filmId));
     }
 
     @Override
